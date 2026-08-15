@@ -145,7 +145,6 @@ export default function App() {
     <>
       <SuiteNav
         current="reading"
-        title="reading-versions"
         subtitle="Version-control what you understood, and diff it against your past self"
       />
 
@@ -171,8 +170,12 @@ export default function App() {
             <Button type="submit" variant="contained">
               Add
             </Button>
-            <Button variant="outlined" onClick={() => fileInput.current?.click()}>
-              Import JSON
+            <Button
+              variant="outlined"
+              onClick={() => fileInput.current?.click()}
+              title="Accepts the selection exported by stage 1, Research Triage, or a backup of this app"
+            >
+              Import
             </Button>
             <Button
               variant="outlined"
@@ -198,11 +201,6 @@ export default function App() {
               tabIndex={-1}
             />
           </form>
-
-          <Typography variant="caption" color="text.secondary" className="mt-2 block">
-            Import accepts the selection exported by research-triage (stage 1), or a backup from
-            this app.
-          </Typography>
 
           {notice && (
             <Alert severity={notice.severity} onClose={() => setNotice(null)} className="mt-3">
@@ -268,7 +266,11 @@ export default function App() {
                         aria-current={isSelected ? 'true' : undefined}
                         className={`w-full cursor-pointer p-3 text-left ${isSelected ? 'border-l-4 border-l-sky-500' : ''}`}
                       >
-                        <Typography variant="subtitle2" component="span" className="block">
+                        <Typography
+                          variant="subtitle2"
+                          component="span"
+                          className="block break-words"
+                        >
                           {article.title}
                         </Typography>
                         <div className="mt-1 flex flex-wrap items-center gap-1">
@@ -296,7 +298,7 @@ export default function App() {
                 <Paper className="p-5 text-center">
                   <Typography variant="body2" color="text.secondary">
                     {articles.length === 0
-                      ? 'Add an article or import a selection from research-triage.'
+                      ? 'Add an article, or import a selection from stage 1.'
                       : 'No article matches these filters.'}
                   </Typography>
                 </Paper>
@@ -327,7 +329,7 @@ export default function App() {
           component="footer"
           className="mt-8 block"
         >
-          Part 2 of 3 of litpipe · no server, no account — your notes stay in this browser ·{' '}
+          Stage 2 of 3 of litpipe · no server, no account — your notes stay in this browser ·{' '}
           <a href="https://github.com/AlexiaSPaiva/reading-versions">source</a>
         </Typography>
       </Container>
