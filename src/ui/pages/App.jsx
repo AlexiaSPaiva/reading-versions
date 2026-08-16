@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
@@ -19,6 +20,11 @@ import {
 } from '../../domain/readings.js';
 import { createProfile, validateProfile } from '../../shared/researchProfile.js';
 import SuiteNav from '../../shared/SuiteNav.jsx';
+import {
+  DOCUMENT_ACCEPT,
+  importDocuments,
+  isDocument,
+} from '../../services/documentImport.js';
 import { downloadJson, readTextFile } from '../../services/fileIo.js';
 import { loadJson, saveJson } from '../../services/storage.js';
 import ArticleDetail from '../components/ArticleDetail.jsx';
@@ -43,6 +49,7 @@ export default function App() {
   const [filters, setFilters] = useState({ status: 'all', tag: '', query: '' });
   const [notice, setNotice] = useState(null);
   const [newTitle, setNewTitle] = useState('');
+  const [busy, setBusy] = useState(false);
   const fileInput = useRef(null);
 
   useEffect(() => {
@@ -94,12 +101,42 @@ export default function App() {
     setNotice(null);
   };
 
-  /** Accepts the JSON that research-triage exports, or a previous backup of this app. */
+  /**
+   * Accepts the papers themselves (PDF, .txt), the JSON that Research Triage
+   * exports, or a previous backup of this app.
+   */
   const handleImport = async (event) => {
-    const file = event.target.files?.[0];
+    const picked = [...(event.target.files ?? [])];
     event.target.value = '';
-    if (!file) return;
+    if (picked.length === 0) return;
 
+    const documents = picked.filter(isDocument);
+    if (documents.length > 0) {
+      setBusy(true);
+      try {
+        const { articles: parsed, errors } = await importDocuments(documents);
+        const incoming = parsed.map(articleFromTriage).filter(Boolean);
+        let added = 0;
+        setArticles((current) => {
+          const seen = new Set(current.map((article) => article.id));
+          const fresh = incoming.filter((article) => !seen.has(article.id));
+          added = fresh.length;
+          if (fresh[0]) setSelectedId(fresh[0].id);
+          return [...current, ...fresh];
+        });
+        setNotice({
+          severity: added === 0 ? 'warning' : errors.length > 0 ? 'warning' : 'success',
+          text:
+            (added === 0 ? 'No new document was added.' : `Imported ${added} document(s).`) +
+            (errors.length > 0 ? ` ${errors.join(' ')}` : ''),
+        });
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
+    const file = picked[0];
     try {
       const parsed = JSON.parse(await readTextFile(file));
       const incomingProfile = validateProfile(parsed?.profile);
@@ -173,9 +210,11 @@ export default function App() {
             <Button
               variant="outlined"
               onClick={() => fileInput.current?.click()}
-              title="Accepts the selection exported by stage 1, Research Triage, or a backup of this app"
+              disabled={busy}
+              startIcon={busy ? <CircularProgress size={16} color="inherit" /> : null}
+              title="PDFs and .txt notes, the selection exported by stage 1, or a backup of this app"
             >
-              Import
+              {busy ? 'Reading…' : 'Import'}
             </Button>
             <Button
               variant="outlined"
@@ -194,7 +233,8 @@ export default function App() {
             <input
               ref={fileInput}
               type="file"
-              accept=".json,application/json"
+              multiple
+              accept={`${DOCUMENT_ACCEPT},.json,application/json`}
               onChange={handleImport}
               className="hidden"
               aria-hidden="true"
