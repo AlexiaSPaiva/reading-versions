@@ -20,11 +20,7 @@ import {
 } from '../../domain/readings.js';
 import { createProfile, validateProfile } from '../../shared/researchProfile.js';
 import SuiteNav from '../../shared/SuiteNav.jsx';
-import {
-  DOCUMENT_ACCEPT,
-  importDocuments,
-  isDocument,
-} from '../../services/documentImport.js';
+import { DOCUMENT_ACCEPT, importDocuments, isDocument } from '../../services/documentImport.js';
 import { downloadJson, readTextFile } from '../../services/fileIo.js';
 import { loadJson, saveJson } from '../../services/storage.js';
 import ArticleDetail from '../components/ArticleDetail.jsx';
