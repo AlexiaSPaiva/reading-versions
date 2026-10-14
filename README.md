@@ -4,6 +4,8 @@
 
 **▶ Live app: https://alexiaspaiva.github.io/reading-versions/**
 
+New here? Open the app and click **Load an example** to see it working on sample data in one click.
+
 Version control for your understanding of a paper. Record what you took from an article, and when you reread it months later, see exactly how your interpretation changed.
 
 > **Stage 2 of 3 — litpipe**

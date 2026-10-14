@@ -20,6 +20,8 @@ import {
 } from '../../domain/readings.js';
 import { createProfile, validateProfile } from '../../shared/researchProfile.js';
 import SuiteNav from '../../shared/SuiteNav.jsx';
+import { EmptyState, ExampleBanner, Section, SuiteFooter, icons } from '../../shared/layout.jsx';
+import { exampleArticles } from '../../domain/example.js';
 import { DOCUMENT_ACCEPT, importDocuments, isDocument } from '../../services/documentImport.js';
 import { downloadJson, readTextFile } from '../../services/fileIo.js';
 import { loadJson, saveJson } from '../../services/storage.js';
@@ -79,6 +81,13 @@ export default function App() {
             ? 'archived'
             : 'reread',
     }));
+
+  const loadExample = () => {
+    const examples = exampleArticles();
+    setArticles(examples);
+    setSelectedId(examples[0].id);
+    setNotice(null);
+  };
 
   const addManualArticle = (event) => {
     event.preventDefault();
@@ -181,16 +190,20 @@ export default function App() {
         subtitle="Version-control what you understood, and diff it against your past self"
       />
 
-      <Container maxWidth="lg" component="main" className="py-6">
-        <Paper className="mb-5 p-4 sm:p-5">
-          <Typography variant="h2" component="h2" className="mb-1">
-            Your library
-          </Typography>
-          <Typography variant="body2" color="text.secondary" className="mb-4">
-            {articles.length} article{articles.length === 1 ? '' : 's'}. Everything is stored in
-            this browser only — export before switching machines.
-          </Typography>
+      <Container maxWidth="lg" component="main" className="py-6 sm:py-8">
+        {articles.length === 0 && (
+          <ExampleBanner onLoad={loadExample}>
+            Open a small sample library: one paper read twice, months apart, so you can see how the
+            diff between two readings works.
+          </ExampleBanner>
+        )}
 
+        <Section
+          id="library-heading"
+          title="Your library"
+          description={`${articles.length} article${articles.length === 1 ? '' : 's'} · stored in this browser only, so export before switching machines.`}
+          className="mb-5"
+        >
           <form onSubmit={addManualArticle} className="flex flex-wrap items-start gap-2">
             <TextField
               label="Add an article by title"
@@ -243,9 +256,9 @@ export default function App() {
               {notice.text}
             </Alert>
           )}
-        </Paper>
+        </Section>
 
-        <div className="grid gap-5 lg:grid-cols-[22rem_1fr]">
+        <div className="grid items-start gap-5 lg:grid-cols-[22rem_1fr]">
           <div className="flex flex-col gap-3">
             <Paper className="p-4">
               <TextField
@@ -300,7 +313,7 @@ export default function App() {
                         type="button"
                         onClick={() => setSelectedId(article.id)}
                         aria-current={isSelected ? 'true' : undefined}
-                        className={`w-full cursor-pointer p-3 text-left ${isSelected ? 'border-l-4 border-l-sky-500' : ''}`}
+                        className={`w-full cursor-pointer p-3 text-left shadow-none transition-colors hover:border-[#9CC3DD] ${isSelected ? 'border-[#5FA8D3] bg-[#EEF6FB] shadow-[inset_4px_0_0_#1B4965]' : ''}`}
                       >
                         <Typography
                           variant="subtitle2"
@@ -331,13 +344,15 @@ export default function App() {
               </ul>
 
               {visible.length === 0 && (
-                <Paper className="p-5 text-center">
-                  <Typography variant="body2" color="text.secondary">
-                    {articles.length === 0
-                      ? 'Add an article, or import a selection from stage 1.'
-                      : 'No article matches these filters.'}
-                  </Typography>
-                </Paper>
+                <EmptyState
+                  compact
+                  icon={icons.document}
+                  title={articles.length === 0 ? 'No articles yet' : 'Nothing matches'}
+                >
+                  {articles.length === 0
+                    ? 'Add one by title above, import PDFs, or import the selection exported by stage 1.'
+                    : 'No article matches these filters.'}
+                </EmptyState>
               )}
             </nav>
           </div>
@@ -350,24 +365,18 @@ export default function App() {
                 onStatusChange={(status) => updateArticle(selected.id, () => ({ status }))}
               />
             ) : (
-              <Paper className="p-8 text-center">
-                <Typography color="text.secondary">
-                  Pick an article on the left to see its reading history.
-                </Typography>
-              </Paper>
+              <EmptyState icon={icons.history} title="Pick an article to see its reading history">
+                Each reading is a dated snapshot of what you understood. With two or more, you can
+                compare any pair word by word.
+              </EmptyState>
             )}
           </div>
         </div>
 
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          component="footer"
-          className="mt-8 block"
-        >
-          Stage 2 of 3 of litpipe · no server, no account — your notes stay in this browser ·{' '}
-          <a href="https://github.com/AlexiaSPaiva/reading-versions">source</a>
-        </Typography>
+        <SuiteFooter
+          current="reading"
+          note="Stage 2 of 3 · no server, no account · your notes stay in this browser."
+        />
       </Container>
     </>
   );

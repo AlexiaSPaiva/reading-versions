@@ -105,10 +105,15 @@ export default function ArticleDetail({ article, onAddReading, onStatusChange })
           {article.title}
         </Typography>
         <Typography variant="body2" color="text.secondary" className="mt-1">
-          {article.authors?.slice(0, 5).join(', ')}
-          {article.authors?.length > 5 ? ' et al.' : ''}
-          {article.year ? ` · ${article.year}` : ''}
-          {article.doi ? ` · doi:${article.doi}` : ''}
+          {[
+            article.authors?.length
+              ? `${article.authors.slice(0, 5).join(', ')}${article.authors.length > 5 ? ' et al.' : ''}`
+              : '',
+            article.year ?? '',
+            article.doi ? `doi:${article.doi}` : '',
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </Typography>
 
         {typeof article.similarity === 'number' && (
